@@ -1,0 +1,388 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>マイクテスト（録音・再生）</title>
+  <style>
+    :root {
+      /* ベース配色（ライトテーマ） */
+      --bg: #ffffff;     /* ページ背景：白 */
+      --fg: #111111;     /* 文字色：濃い黒 */
+      --muted: #6b7280;  /* 説明文など淡い文字色（TailwindのGray600相当） */
+
+      /* ボタン配色 */
+      --primary: #2b6cf6;   /* 録音開始（主要ボタン） */
+      --primary-fg: #ffffff;
+      --btn-bg: #f3f4f6;    /* セカンダリボタン背景（薄グレー） */
+      --btn-fg: #111111;
+      --btn-border: #e5e7eb;/* セカンダリボタン枠線（薄グレー） */
+      --danger: #e74c3c;    /* 停止ボタン色 */
+
+      /* コンポーネント配色（メーター・モーダル） */
+      --card-bg: #f9fafb;      /* カード系背景（薄いグレー） */
+      --card-border: #e5e7eb;  /* 枠線 */
+      --overlay-bg: rgba(17,17,17,0.35); /* オーバーレイ（薄い黒） */
+      --modal-bg: #ffffff;     /* モーダル背景：白 */
+      --modal-border: #e5e7eb;
+      --shadow: 0 12px 32px rgba(0,0,0,0.12);
+
+      /* メーターの色 */
+      --meter-bg: #ffffff;
+      --meter-wave: #0ea5a6;   /* 波形（ティール系） */
+      --meter-rms: #2563eb;    /* RMSバー（ブルー系） */
+      --meter-peak: #f59e0b;   /* ピークマーカー（アンバー系） */
+    }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", sans-serif;
+      display: grid;
+      place-items: center;
+    }
+
+    main {
+      width: min(560px, 92vw);
+      padding: 24px;
+      text-align: center;
+    }
+
+    h1 { font-size: 20px; margin: 0 0 12px; }
+    p  { font-size: 14px; color: var(--muted); margin: 0 0 16px; }
+
+    /* ボタン */
+    .btn {
+      display: inline-block;
+      width: 100%;
+      padding: 16px 18px;
+      font-size: 18px;
+      border-radius: 14px;
+      border: 1px solid var(--btn-border);
+      cursor: pointer;
+      user-select: none;
+      margin-bottom: 12px;
+      background: var(--btn-bg);
+      color: var(--btn-fg);
+      transition: filter 0.15s ease, transform 0.02s ease;
+    }
+    .btn:hover { filter: brightness(0.98); }
+    .btn:active { transform: translateY(1px); }
+
+    .btn-primary {
+      background: var(--primary);
+      color: var(--primary-fg);
+      border-color: var(--primary);
+    }
+    .btn-danger {
+      background: var(--danger);
+      color: #ffffff;
+      border-color: var(--danger);
+    }
+
+    /* メーターカード */
+    .meter-wrap {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 12px;
+      margin: 14px 0 8px;
+    }
+    .meter-label {
+      font-size: 12px;
+      color: var(--muted);
+      text-align: left;
+      margin-bottom: 6px;
+    }
+    canvas#meter {
+      width: 100%;
+      height: 64px;
+      display: block;
+      background: var(--meter-bg);
+      border-radius: 10px;
+      border: 1px solid var(--card-border);
+    }
+
+    .status { font-size: 13px; color: var(--muted); margin-top: 8px; min-height: 1.6em; }
+
+    /* 完了ポップアップ（ライトテーマ） */
+    .overlay {
+      position: fixed; inset: 0;
+      background: var(--overlay-bg);
+      display: none; align-items: center; justify-content: center;
+      z-index: 100; padding: 16px;
+    }
+    .overlay.show { display: flex; }
+    .modal {
+      background: var(--modal-bg); color: var(--fg);
+      border: 1px solid var(--modal-border); border-radius: 14px;
+      padding: 16px; max-width: 480px; width: 100%;
+      box-shadow: var(--shadow);
+      text-align: left;
+    }
+    .modal h2 { font-size: 18px; margin: 0 0 8px; }
+    .modal p  { font-size: 14px; color: var(--muted); margin: 0 0 16px; }
+    .actions {
+      display: flex; gap: 12px; justify-content: flex-end; flex-wrap: wrap;
+    }
+
+    audio { width: 100%; margin-top: 8px; }
+
+    .hint {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 10px;
+      text-align: left;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>マイクテスト：録音して再生</h1>
+    <p>「録音開始」を押して話してください。録音停止後に「再生」で確認できます。</p>
+
+    <!-- ボタン -->
+    <button id="recordBtn" class="btn btn-primary">🎙️ 録音開始</button>
+    <button id="playBtn"   class="btn" disabled>▶️ 再生</button>
+
+    <!-- レベルメーター -->
+    <div class="meter-wrap">
+      <div class="meter-label">入力レベル</div>
+      <canvas id="meter" width="600" height="120" aria-label="入力レベルメーター"></canvas>
+    </div>
+
+    <!-- 状態表示／注意書き -->
+    <div id="status" class="status"></div>
+    <div class="hint">
+      ・初回はマイクの許可が必要です（HTTPSでアクセスしてください）。<br>
+      ・録音中はメーターが動けばマイク入力OKです。<br>
+      ・再生が終わったら「次へ」または「録り直し」を選べます。
+    </div>
+
+    <!-- 再生用オーディオ -->
+    <audio id="player" controls style="display:none;"></audio>
+  </main>
+
+  <!-- 完了ポップアップ -->
+  <div id="overlay" class="overlay" aria-modal="true" role="dialog" aria-labelledby="dlgTitle" aria-describedby="dlgDesc">
+    <div class="modal">
+      <h2 id="dlgTitle">マイクテスト完了</h2>
+      <p id="dlgDesc">再生が完了しました。次へ進むか、録り直しを行います。</p>
+      <div class="actions">
+        <button id="retryBtn" class="btn">🔁 録り直し</button>
+        <button id="nextBtn"  class="btn btn-primary">➡️ 次へ</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ===== 設定 =====
+    const NEXT_URL = "/next.html"; // 次のチェック項目ページ
+
+    // ===== 参照 =====
+    const recordBtn = document.getElementById('recordBtn');
+    const playBtn   = document.getElementById('playBtn');
+    const statusEl  = document.getElementById('status');
+    const meterCv   = document.getElementById('meter');
+    const player    = document.getElementById('player');
+    const overlay   = document.getElementById('overlay');
+    const retryBtn  = document.getElementById('retryBtn');
+    const nextBtn   = document.getElementById('nextBtn');
+
+    // ===== 状態 =====
+    let stream = null;
+    let mediaRecorder = null;
+    let chunks = [];
+    let audioURL = null;
+    let recording = false;
+
+    // WebAudio for level meter
+    let audioCtx = null;
+    let analyser = null;
+    let sourceNode = null;
+    let rafId = null;
+
+    function pickMimeType() {
+      const candidates = [
+        'audio/webm;codecs=opus',
+        'audio/webm',
+        'audio/mp4',                  // Safari系
+        'audio/ogg;codecs=opus'       // Firefox（環境による）
+      ];
+      for (const type of candidates) {
+        if (window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(type)) {
+          return type;
+        }
+      }
+      return ''; // ブラウザ任せ
+    }
+
+    function startMeter() {
+      if (!analyser) return;
+      const ctx = meterCv.getContext('2d');
+      const w = meterCv.width;
+      const h = meterCv.height;
+      const data = new Uint8Array(analyser.fftSize);
+
+      function draw() {
+        analyser.getByteTimeDomainData(data);
+        let sum = 0;
+        for (let i = 0; i < data.length; i++) {
+          const v = (data[i] - 128) / 128;
+          sum += v * v;
+        }
+        const rms = Math.sqrt(sum / data.length);          // 0..1
+        const peak = Math.max(...data.map(v => Math.abs((v - 128) / 128)));
+
+        // 背景
+        ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--meter-bg').trim() || '#ffffff';
+        ctx.fillRect(0, 0, w, h);
+
+        // RMSバー
+        ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--meter-rms').trim() || '#2563eb';
+        ctx.fillRect(12, h - 20, Math.min(w - 24, (w - 24) * rms), 12);
+
+        // ピークマーカー
+        ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--meter-peak').trim() || '#f59e0b';
+        const xPeak = 12 + Math.min(w - 24, (w - 24) * peak);
+        ctx.fillRect(xPeak - 2, h - 26, 4, 24);
+
+        // 波形
+        ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--meter-wave').trim() || '#0ea5a6';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        const step = w / data.length;
+        for (let i = 0; i < data.length; i++) {
+          const y = h / 2 + ((data[i] - 128) / 128) * (h / 3);
+          if (i === 0) ctx.moveTo(0, y);
+          else ctx.lineTo(i * step, y);
+        }
+        ctx.stroke();
+
+        rafId = requestAnimationFrame(draw);
+      }
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(draw);
+    }
+
+    function stopMeter() {
+      cancelAnimationFrame(rafId);
+      const ctx = meterCv.getContext('2d');
+      ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--meter-bg').trim() || '#ffffff';
+      ctx.fillRect(0, 0, meterCv.width, meterCv.height);
+    }
+
+    async function ensureMic() {
+      if (stream) return stream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+        });
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 2048;
+        sourceNode = audioCtx.createMediaStreamSource(stream);
+        sourceNode.connect(analyser);
+        return stream;
+      } catch (err) {
+        statusEl.textContent = `マイク取得に失敗しました：${err?.message || err}`;
+        throw err;
+      }
+    }
+
+    function updateUI() {
+      recordBtn.textContent = recording ? '⏹️ 録音停止' : '🎙️ 録音開始';
+      recordBtn.classList.toggle('btn-danger', recording);
+      playBtn.disabled = !audioURL;
+      player.style.display = audioURL ? 'block' : 'none';
+    }
+
+    function resetAudio() {
+      if (audioURL) {
+        URL.revokeObjectURL(audioURL);
+        audioURL = null;
+      }
+      chunks = [];
+      player.src = '';
+      updateUI();
+    }
+
+    recordBtn.addEventListener('click', async () => {
+      try {
+        await ensureMic();
+      } catch { return; }
+
+      if (!recording) {
+        // 録音開始
+        const type = pickMimeType();
+        try {
+          mediaRecorder = new MediaRecorder(stream, type ? { mimeType: type } : undefined);
+        } catch (e) {
+          statusEl.textContent = '録音初期化に失敗しました。ブラウザの互換性をご確認ください。';
+          return;
+        }
+        chunks = [];
+        mediaRecorder.ondataavailable = (ev) => { if (ev.data && ev.data.size > 0) chunks.push(ev.data); };
+        mediaRecorder.onstop = () => {
+          const blobType = mediaRecorder.mimeType || type || 'audio/webm';
+          const blob = new Blob(chunks, { type: blobType });
+          resetAudio(); // 既存URLがあれば破棄
+          audioURL = URL.createObjectURL(blob);
+          player.src = audioURL;
+          player.load();
+          statusEl.textContent = '録音完了。再生ボタンで確認してください。';
+          updateUI();
+        };
+        mediaRecorder.start();
+        recording = true;
+        statusEl.textContent = '録音中…話してください。';
+        startMeter();
+      } else {
+        // 録音停止
+        try { mediaRecorder.stop(); } catch {}
+        recording = false;
+        stopMeter();
+        updateUI();
+      }
+    });
+
+    playBtn.addEventListener('click', () => {
+      if (!audioURL) return;
+      player.currentTime = 0;
+      player.play().catch(err => {
+        statusEl.textContent = `再生エラー：${err?.message || err}`;
+      });
+    });
+
+    // 再生完了でポップアップ
+    player.addEventListener('ended', () => {
+      overlay.classList.add('show');
+    });
+
+    // 録り直し
+    retryBtn.addEventListener('click', () => {
+      overlay.classList.remove('show');
+      resetAudio();
+      statusEl.textContent = '録音し直してください。';
+    });
+
+    // 次へ
+    nextBtn.addEventListener('click', () => {
+      window.location.href = 'review.html';
+    });
+
+    // ページ離脱時はストリーム停止
+    window.addEventListener('beforeunload', () => {
+      try { stream?.getTracks()?.forEach(t => t.stop()); } catch {}
+      stopMeter();
+      resetAudio();
+    });
+
+    // 初期UI
+    updateUI();
+  </script>
+</body>
+</html>
