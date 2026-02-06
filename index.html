@@ -1,222 +1,223 @@
-
 <!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>画面チェック（4×4／黒→白）</title>
+  <title>修理後動作確認</title>
   <style>
-    :root {
-      --bg-black: #000000;
-      --line-color: #888888; /* グリッド線の色 */
-      --line-size: 4px;      /* グリッド線の太さ */
-      --cell-radius: 6px;
-      --white: #ffffff;
+    :root{
+      --bg:#ffffff; --fg:#111111; --muted:#6b7280;
+      --primary:#2b6cf6; --primary-fg:#ffffff;
+      --card:#f9fafb; --border:#e5e7eb;
+      --input:#ffffff;
+      --shadow: 0 8px 20px rgba(0,0,0,.06);
+    }
+    *{box-sizing:border-box;}
+    html,body{height:100%; margin:0; background:var(--bg); color:var(--fg);
+      font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans JP",sans-serif;}
+    body{
+      display:flex;
+      justify-content:center;
+      align-items:stretch;
+    }
+    main{
+      width:min(560px, 100%);
+      padding:20px 16px 28px;
+      margin:0 auto;
     }
 
-    /* ベース */
-    html, body {
-      height: 100%;
-      margin: 0;
-      background: var(--bg-black);
-      color: #ddd;
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", sans-serif;
+    header{
+      padding:6px 2px 12px;
+      text-align:center;
+    }
+    h1{
+      font-size:24px;
+      margin:0 0 6px;
+      letter-spacing:.02em;
+    }
+    p{
+      margin:0;
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.6;
     }
 
-    /* グリッド領域（全画面） */
-    .grid {
-      position: fixed;
-      top: env(safe-area-inset-top, 0);
-      bottom: env(safe-area-inset-bottom, 0);
-      left: env(safe-area-inset-left, 0);
-      right: env(safe-area-inset-right, 0);
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      grid-template-rows: repeat(4, 1fr);
-      gap: var(--line-size);
-      padding: var(--line-size);
-      background: var(--line-color); /* gap部分が線として見える */
-      touch-action: none; /* スクロール無効（なぞりでフリップ） */
+    .card{
+      margin-top:14px;
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:16px;
+      box-shadow:var(--shadow);
     }
 
-    /* セル（初期は黒） */
-    .cell {
-      background: var(--bg-black);
-      border-radius: var(--cell-radius);
-      transition: background-color 120ms ease;
+    label{
+      display:block;
+      font-size:13px;
+      color:var(--muted);
+      margin:0 0 8px;
     }
 
-    /* 白へフリップ後 */
-    .cell.flipped {
-      background: var(--white);
+    /* iOS/Androidで押しやすい大きめselect */
+    .select-wrap{
+      position:relative;
+    }
+    select{
+      width:100%;
+      appearance:none;
+      -webkit-appearance:none;
+      -moz-appearance:none;
+      background:var(--input);
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:16px 44px 16px 14px; /* 右に矢印スペース */
+      font-size:16px; /* iOSでズームしないため16px以上推奨 */
+      line-height:1.2;
+      color:var(--fg);
+      outline:none;
+    }
+    select:focus{
+      border-color:rgba(43,108,246,.55);
+      box-shadow:0 0 0 4px rgba(43,108,246,.12);
+    }
+    .chev{
+      position:absolute;
+      right:14px;
+      top:50%;
+      transform:translateY(-50%);
+      pointer-events:none;
+      color:#9ca3af;
+      font-size:18px;
     }
 
-    /* 完了時ポップアップ */
-    .overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.6);
-      display: none; /* 初期は非表示 */
-      align-items: center;
-      justify-content: center;
-      z-index: 100;
-      padding: 16px;
+    .status{
+      margin-top:10px;
+      min-height:1.6em;
+      color:var(--muted);
+      font-size:13px;
     }
-    .overlay.show {
-      display: flex;
+
+    .actions{
+      margin-top:14px;
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
     }
-    .modal {
-      background: #111;
-      color: #eee;
-      border: 1px solid #333;
-      border-radius: 14px;
-      padding: 16px;
-      max-width: 480px;
-      width: 100%;
-      box-shadow: 0 12px 32px rgba(0,0,0,0.4);
+    .btn{
+      width:100%;
+      padding:16px 18px;
+      font-size:18px;
+      border-radius:14px;
+      border:1px solid var(--border);
+      cursor:pointer;
+      background:#f3f4f6;
+      color:var(--fg);
+      user-select:none;
+      transition:filter .15s ease, transform .02s ease;
+      -webkit-tap-highlight-color: transparent;
     }
-    .modal h1 {
-      font-size: 18px;
-      margin: 0 0 8px;
+    .btn:hover{filter:brightness(.98);}
+    .btn:active{transform:translateY(1px);}
+    .btn-primary{
+      background:var(--primary);
+      border-color:var(--primary);
+      color:var(--primary-fg);
     }
-    .modal p {
-      font-size: 14px;
-      margin: 0 0 16px;
-      color: #ccc;
+    .btn:disabled{
+      opacity:.55;
+      cursor:not-allowed;
     }
-    .actions {
-      display: flex;
-      gap: 12px;
-      justify-content: flex-end;
-      flex-wrap: wrap;
+
+    .note{
+      margin-top:10px;
+      font-size:12px;
+      color:var(--muted);
+      line-height:1.6;
     }
-    .btn {
-      appearance: none;
-      border: 1px solid #444;
-      background: #1a1a1a;
-      color: #eee;
-      font-size: 14px;
-      padding: 10px 14px;
-      border-radius: 10px;
-      cursor: pointer;
+
+    /* 画面下に余白を確保（iPhoneのホームバー対策） */
+    .safe-bottom{
+      padding-bottom: env(safe-area-inset-bottom);
     }
-    .btn-primary {
-      background: #2b6cf6;
-      border-color: #2b6cf6;
-      color: #fff;
-    }
-    .btn:hover { filter: brightness(1.1); }
-    .btn:active { filter: brightness(0.95); }
   </style>
 </head>
 <body>
-  <!-- 4×4グリッド -->
-  <div id="grid" class="grid" role="grid" aria-label="4×4画面チェックグリッド"></div>
+  <main class="safe-bottom">
+    <header>
+      <h1>修理後動作確認</h1>
+      <p>店舗を選択してから「次へ」を押してください。</p>
+    </header>
 
-  <!-- 完了ポップアップ -->
-  <div id="overlay" class="overlay" aria-modal="true" role="dialog" aria-labelledby="dlgTitle" aria-describedby="dlgDesc">
-    <div class="modal">
-      <h1 id="dlgTitle">画面チェック完了</h1>
-      <p id="dlgDesc">全てのマスが白になりました。次のチェックへ進むか、再チェックを行います。</p>
-      <div class="actions">
-        <button id="retryBtn" class="btn">再チェック</button>
-        <button id="nextBtn" class="btn btn-primary">次へ</button>
+    <section class="card" aria-label="店舗選択">
+      <label for="storeSelect">店舗選択</label>
+
+      <div class="select-wrap">
+        <select id="storeSelect">
+          <option value="" selected disabled>選択してください</option>
+          <!-- とりあえず 1〜10（あとで店舗名に差し替えOK） -->
+          <option value="1">店舗 1</option>
+          <option value="2">店舗 2</option>
+          <option value="3">店舗 3</option>
+          <option value="4">店舗 4</option>
+          <option value="5">店舗 5</option>
+          <option value="6">店舗 6</option>
+          <option value="7">店舗 7</option>
+          <option value="8">店舗 8</option>
+          <option value="9">店舗 9</option>
+          <option value="10">店舗 10</option>
+        </select>
+        <div class="chev">▾</div>
       </div>
-    </div>
-  </div>
 
-  <script>
-    // ==== 設定（必要に応じて変更） ====
-    const NEXT_URL = "/next.html"; // 「次へ」の遷移先URL（ダミー）
+      <div id="status" class="status">未選択：店舗を選んでください。</div>
 
-    // ==== 要素取得 ====
-    const grid = document.getElementById('grid');
-    const overlay = document.getElementById('overlay');
-    const nextBtn = document.getElementById('nextBtn');
-    const retryBtn = document.getElementById('retryBtn');
+      <div class="actions">
+        <button id="nextBtn" class="btn btn-primary" disabled>➡️ 次へ</button>
+      </div>
 
-    // ==== グリッド初期化 ====
-    const size = 4; // 4×4
-    const total = size * size;
-    const cells = [];
-    let flippedCount = 0;
+      <div class="note">
+        ※ 店舗を選択すると次へ進めます。選択情報は端末内（localStorage）に保存します。
+      </div>
+    </section>
 
-    for (let i = 0; i < total; i++) {
-      const cell = document.createElement('div');
-      cell.className = 'cell';
-      cell.dataset.index = String(i);
-      grid.appendChild(cell);
-      cells.push(cell);
-    }
+    <script>
+      // 選択した店舗IDを保存するキー（後で他ページから読む）
+      const STORE_KEY = 'selectedStoreId';
 
-    // ==== フリップ（黒→白のみ。戻さない） ====
-    function flipCell(cell) {
-      if (!cell || cell.classList.contains('flipped')) return; // すでに白なら何もしない
-      cell.classList.add('flipped');
-      flippedCount++;
-      if (flippedCount >= total) {
-        // 全部白→完了ポップアップ
-        overlay.classList.add('show');
-      }
-    }
+      const selectEl = document.getElementById('storeSelect');
+      const nextBtn  = document.getElementById('nextBtn');
+      const statusEl = document.getElementById('status');
 
-    // ==== ぽいんた操作（タップ・なぞり） ====
-    let drawing = false;
-    let lastIdx = null;
+      let selectedStoreId = "";
 
-    function cellFromEvent(ev) {
-      const el = document.elementFromPoint(ev.clientX, ev.clientY);
-      return el && el.classList && el.classList.contains('cell') ? el : null;
-    }
-
-    grid.addEventListener('pointerdown', (ev) => {
-      ev.preventDefault();
-      drawing = true;
-      grid.setPointerCapture(ev.pointerId);
-      const cell = cellFromEvent(ev);
-      if (cell) {
-        flipCell(cell);
-        lastIdx = cell.dataset.index;
-      }
-    });
-
-    grid.addEventListener('pointermove', (ev) => {
-      if (!drawing) return;
-      const cell = cellFromEvent(ev);
-      if (cell) {
-        const idx = cell.dataset.index;
-        if (idx !== lastIdx) {
-          flipCell(cell);
-          lastIdx = idx;
+      // 選択されたら「次へ」を有効化
+      selectEl.addEventListener('change', () => {
+        selectedStoreId = selectEl.value;
+        if (selectedStoreId) {
+          nextBtn.disabled = false;
+          statusEl.textContent = `選択中：店舗 ${selectedStoreId}`;
+        } else {
+          nextBtn.disabled = true;
+          statusEl.textContent = '未選択：店舗を選んでください。';
         }
-      }
-    });
+      });
 
-    grid.addEventListener('pointerup', (ev) => {
-      drawing = false;
-      lastIdx = null;
-      grid.releasePointerCapture(ev.pointerId);
-    });
+      // 次へ：localStorageへ保存 → fptest.htmlへ
+      nextBtn.addEventListener('click', () => {
+        if (!selectedStoreId) return;
+        localStorage.setItem(STORE_KEY, selectedStoreId);
+        location.href = 'fptest.html';
+      });
 
-    grid.addEventListener('pointercancel', () => {
-      drawing = false;
-      lastIdx = null;
-    });
-
-    // ==== 完了ポップアップの操作 ====
-    nextBtn.addEventListener('click', () => {
-      // 次のチェック項目ページへ遷移
-      window.location.href = 'telltest.html';
-    });
-
-    retryBtn.addEventListener('click', () => {
-      // 全セルを黒へ戻して再チェック
-      cells.forEach(c => c.classList.remove('flipped'));
-      flippedCount = 0;
-      overlay.classList.remove('show');
-    });
-
-    // 画面回転やセーフエリアはCSSで自動対応
-  </script>
+      // （任意）前回選択の復元をしたい場合は以下を有効化
+      // const prev = localStorage.getItem(STORE_KEY);
+      // if (prev) {
+      //   selectEl.value = prev;
+      //   selectedStoreId = prev;
+      //   nextBtn.disabled = false;
+      //   statusEl.textContent = `選択中：店舗 ${selectedStoreId}`;
+      // }
+    </script>
+  </main>
 </body>
 </html>

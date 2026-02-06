@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>ご利用ありがとうございました（口コミのお願い）</title>
+  <title>口コミのお願い</title>
   <style>
     :root {
       /* ベース（ライトテーマ） */
@@ -73,14 +72,21 @@
 <body>
   <main>
     <h1>ご利用ありがとうございました</h1>
-    <p>
+
+    <!-- ✅ ここをJSで「この度は ◯◯ のご利用ありがとうございました」に差し替え -->
+    <p id="thanksText">
       この度は当店をご利用いただき、誠にありがとうございます。<br>
       よろしければ、今後のサービス向上のために<strong>簡単な口コミ</strong>にご協力をお願いします。<br>
       所要時間は<strong>30秒ほど</strong>、ひと言だけでも大歓迎です。
     </p>
 
-    <!-- 口コミへ遷移するボタン（URLを店舗のものに差し替えてください） -->
-    <a class="btn" href="https://g.page/r/CdR6B0kblKpvEBM/review" target="_blank" rel="noopener" aria-label="Googleで口コミを書く">
+    <!-- ✅ 口コミへ遷移するボタン（JSでURLを店舗のものに差し替える） -->
+    <a id="reviewBtn"
+       class="btn"
+       href="https://g.page/r/CdR6B0kblKpvEBM/review"
+       target="_blank"
+       rel="noopener"
+       aria-label="Googleで口コミを書く">
       口コミを書く（Google）
     </a>
 
@@ -90,10 +96,71 @@
     <a class="btn btn-secondary" href="https://x.com/compose/tweet?text=店名やハッシュタグ" target="_blank" rel="noopener">X（旧Twitter）で投稿する</a>
     -->
 
-    <div class="small">
-      無理なお願いはいたしません。可能な範囲でご協力いただけましたら幸いです。
-    </div>
   </main>
+
+  <script>
+    // index.htmlで保存したキー名と同じにする
+    const STORE_KEY = 'selectedStoreId';
+
+    // ✅ 店舗ID → 店舗名（あとで正式名称に差し替えOK）
+    const STORE_NAMES = {
+      "1": "店舗1",
+      "2": "店舗2",
+      "3": "店舗3",
+      "4": "店舗4",
+      "5": "店舗5",
+      "6": "店舗6",
+      "7": "店舗7",
+      "8": "店舗8",
+      "9": "店舗9",
+      "10": "店舗10"
+    };
+
+    // ✅ 店舗ID → Google口コミURL（あとで本物に差し替えOK）
+    const STORE_REVIEW_URLS = {
+      "1": "https://g.page/r/CdR6B0kblKpvEBM/review",
+      "2": "https://example.com/store2/review",
+      "3": "https://example.com/store3/review",
+      "4": "https://example.com/store4/review",
+      "5": "https://example.com/store5/review",
+      "6": "https://example.com/store6/review",
+      "7": "https://example.com/store7/review",
+      "8": "https://example.com/store8/review",
+      "9": "https://example.com/store9/review",
+      "10": "https://example.com/store10/review"
+    };
+
+    const thanksText = document.getElementById('thanksText');
+    const reviewBtn  = document.getElementById('reviewBtn');
+
+    const storeId = localStorage.getItem(STORE_KEY);
+    const storeName = STORE_NAMES[storeId];
+    const reviewUrl = STORE_REVIEW_URLS[storeId];
+
+    // ✅ 文章を「この度は 対応店舗 のご利用ありがとうございました」に変更
+    if (storeName) {
+      // 先頭行だけ差し替えて、残りの案内文はそのまま残す形
+      thanksText.innerHTML =
+        `この度は <strong>${storeName}</strong> のご利用ありがとうございました。<br>` +
+        `よろしければ、今後のサービス向上のために<strong>簡単な口コミ</strong>にご協力をお願いします。<br>` +
+        `所要時間は<strong>30秒ほど</strong>、ひと言だけでも大歓迎です。`;
+    }
+
+    // ✅ 口コミボタンURLを店舗に応じて差し替え
+    if (reviewUrl) {
+      reviewBtn.href = reviewUrl;
+    } else {
+      // 未選択などのとき：押したらindexへ戻す
+      reviewBtn.textContent = '店舗が未選択です（最初に戻って選択）';
+      reviewBtn.setAttribute('aria-disabled', 'true');
+      reviewBtn.style.opacity = '0.6';
+      reviewBtn.style.pointerEvents = 'auto';
+
+      reviewBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        location.href = 'index.html';
+      });
+    }
+  </script>
 </body>
 </html>
-

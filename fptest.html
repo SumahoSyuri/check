@@ -1,0 +1,222 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>画面チェック</title>
+  <style>
+    :root {
+      --bg-black: #000000;
+      --line-color: #888888; /* グリッド線の色 */
+      --line-size: 4px;      /* グリッド線の太さ */
+      --cell-radius: 6px;
+      --white: #ffffff;
+    }
+
+    /* ベース */
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: var(--bg-black);
+      color: #ddd;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", sans-serif;
+    }
+
+    /* グリッド領域（全画面） */
+    .grid {
+      position: fixed;
+      top: env(safe-area-inset-top, 0);
+      bottom: env(safe-area-inset-bottom, 0);
+      left: env(safe-area-inset-left, 0);
+      right: env(safe-area-inset-right, 0);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-template-rows: repeat(4, 1fr);
+      gap: var(--line-size);
+      padding: var(--line-size);
+      background: var(--line-color); /* gap部分が線として見える */
+      touch-action: none; /* スクロール無効（なぞりでフリップ） */
+    }
+
+    /* セル（初期は黒） */
+    .cell {
+      background: var(--bg-black);
+      border-radius: var(--cell-radius);
+      transition: background-color 120ms ease;
+    }
+
+    /* 白へフリップ後 */
+    .cell.flipped {
+      background: var(--white);
+    }
+
+    /* 完了時ポップアップ */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      display: none; /* 初期は非表示 */
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 16px;
+    }
+    .overlay.show {
+      display: flex;
+    }
+    .modal {
+      background: #111;
+      color: #eee;
+      border: 1px solid #333;
+      border-radius: 14px;
+      padding: 16px;
+      max-width: 480px;
+      width: 100%;
+      box-shadow: 0 12px 32px rgba(0,0,0,0.4);
+    }
+    .modal h1 {
+      font-size: 18px;
+      margin: 0 0 8px;
+    }
+    .modal p {
+      font-size: 14px;
+      margin: 0 0 16px;
+      color: #ccc;
+    }
+    .actions {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+    }
+    .btn {
+      appearance: none;
+      border: 1px solid #444;
+      background: #1a1a1a;
+      color: #eee;
+      font-size: 14px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    .btn-primary {
+      background: #2b6cf6;
+      border-color: #2b6cf6;
+      color: #fff;
+    }
+    .btn:hover { filter: brightness(1.1); }
+    .btn:active { filter: brightness(0.95); }
+  </style>
+</head>
+<body>
+  <!-- 4×4グリッド -->
+  <div id="grid" class="grid" role="grid" aria-label="4×4画面チェックグリッド"></div>
+
+  <!-- 完了ポップアップ -->
+  <div id="overlay" class="overlay" aria-modal="true" role="dialog" aria-labelledby="dlgTitle" aria-describedby="dlgDesc">
+    <div class="modal">
+      <h1 id="dlgTitle">画面チェック完了</h1>
+      <p id="dlgDesc">次のチェックへ進むか、再チェックを行います。</p>
+      <div class="actions">
+        <button id="retryBtn" class="btn">再チェック</button>
+        <button id="nextBtn" class="btn btn-primary">次へ</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==== 設定（必要に応じて変更） ====
+    const NEXT_URL = "/next.html"; // 「次へ」の遷移先URL（ダミー）
+
+    // ==== 要素取得 ====
+    const grid = document.getElementById('grid');
+    const overlay = document.getElementById('overlay');
+    const nextBtn = document.getElementById('nextBtn');
+    const retryBtn = document.getElementById('retryBtn');
+
+    // ==== グリッド初期化 ====
+    const size = 4; // 4×4
+    const total = size * size;
+    const cells = [];
+    let flippedCount = 0;
+
+    for (let i = 0; i < total; i++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.dataset.index = String(i);
+      grid.appendChild(cell);
+      cells.push(cell);
+    }
+
+    // ==== フリップ（黒→白のみ。戻さない） ====
+    function flipCell(cell) {
+      if (!cell || cell.classList.contains('flipped')) return; // すでに白なら何もしない
+      cell.classList.add('flipped');
+      flippedCount++;
+      if (flippedCount >= total) {
+        // 全部白→完了ポップアップ
+        overlay.classList.add('show');
+      }
+    }
+
+    // ==== ぽいんた操作（タップ・なぞり） ====
+    let drawing = false;
+    let lastIdx = null;
+
+    function cellFromEvent(ev) {
+      const el = document.elementFromPoint(ev.clientX, ev.clientY);
+      return el && el.classList && el.classList.contains('cell') ? el : null;
+    }
+
+    grid.addEventListener('pointerdown', (ev) => {
+      ev.preventDefault();
+      drawing = true;
+      grid.setPointerCapture(ev.pointerId);
+      const cell = cellFromEvent(ev);
+      if (cell) {
+        flipCell(cell);
+        lastIdx = cell.dataset.index;
+      }
+    });
+
+    grid.addEventListener('pointermove', (ev) => {
+      if (!drawing) return;
+      const cell = cellFromEvent(ev);
+      if (cell) {
+        const idx = cell.dataset.index;
+        if (idx !== lastIdx) {
+          flipCell(cell);
+          lastIdx = idx;
+        }
+      }
+    });
+
+    grid.addEventListener('pointerup', (ev) => {
+      drawing = false;
+      lastIdx = null;
+      grid.releasePointerCapture(ev.pointerId);
+    });
+
+    grid.addEventListener('pointercancel', () => {
+      drawing = false;
+      lastIdx = null;
+    });
+
+    // ==== 完了ポップアップの操作 ====
+    nextBtn.addEventListener('click', () => {
+      // 次のチェック項目ページへ遷移
+      window.location.href = 'telltest.html';
+    });
+
+    retryBtn.addEventListener('click', () => {
+      // 全セルを黒へ戻して再チェック
+      cells.forEach(c => c.classList.remove('flipped'));
+      flippedCount = 0;
+      overlay.classList.remove('show');
+    });
+
+    // 画面回転やセーフエリアはCSSで自動対応
+  </script>
+</body>
+</html>
