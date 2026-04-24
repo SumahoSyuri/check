@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>修理前チェック完了</title>
+<style>
+body{
+  margin:0; height:100%;
+  display:grid; place-items:center;
+  font-family: system-ui, "Noto Sans JP", sans-serif;
+  background:#fff;
+}
+main{ width:min(480px,90%); text-align:center; }
+h1{ font-size:22px; margin-bottom:16px; }
+.btn{
+  width:100%;
+  padding:18px;
+  font-size:18px;
+  border-radius:14px;
+  border:none;
+  background:#2b6cf6;
+  color:#fff;
+  cursor:pointer;
+}
+</style>
+</head>
+<body>
+<main>
+  <h1>修理前チェック完了</h1>
+  <p>最初の画面に戻ってください。</p>
+  <button class="btn" onclick="goBack()">最初に戻る</button>
+</main>
+
+<script>
+function goBack(){
+  localStorage.removeItem('repairType');
+  location.href = 'start.html';
+}
+</script>
+</body>
+</html>

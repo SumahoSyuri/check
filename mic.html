@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>マイクテスト</title>
+
   <style>
     :root{
       --bg:#ffffff; --fg:#111111; --muted:#6b7280;
@@ -15,164 +16,209 @@
       --rms:#2563eb;
       --peak:#f59e0b;
     }
-    html,body{height:100%;margin:0;background:var(--bg);color:var(--fg);
+
+    html,body{
+      height:100%;
+      margin:0;
+      background:var(--bg);
+      color:var(--fg);
       font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans JP",sans-serif;
-      display:grid;place-items:center;}
-    main{width:min(560px,92vw);padding:24px;text-align:center;}
-    h1{font-size:20px;margin:0 0 12px;}
-    p{font-size:14px;color:var(--muted);margin:0 0 16px;text-align:left;line-height:1.6;}
-    .row{display:flex;gap:12px;flex-wrap:wrap;}
-    .btn{flex:1;width:100%;padding:16px 18px;font-size:18px;border-radius:14px;
-      border:1px solid var(--border);cursor:pointer;background:#f3f4f6;color:var(--fg);
-      user-select:none;transition:filter .15s ease, transform .02s ease;}
-    .btn:hover{filter:brightness(.98);}
-    .btn:active{transform:translateY(1px);}
-    .btn-primary{background:var(--primary);color:var(--primary-fg);border-color:var(--primary);}
-    .btn-danger{background:var(--danger);color:#fff;border-color:var(--danger);}
+      display:grid;
+      place-items:center;
+    }
 
-    /* 次へボタンの見た目（任意） */
-    .btn-next{background:#111827;color:#fff;border-color:#111827;}
+    main{
+      width:min(560px,92vw);
+      padding:24px;
+      text-align:center;
+    }
 
-    .btn:disabled{opacity:.55;cursor:not-allowed;}
-    .meter-wrap{background:var(--card);border:1px solid var(--border);border-radius:12px;
-      padding:12px;margin:14px 0 8px;text-align:left;}
-    .meter-label{font-size:12px;color:var(--muted);margin-bottom:6px;}
-    canvas#meter{width:100%;height:72px;display:block;background:var(--meter-bg);
-      border-radius:10px;border:1px solid var(--border);}
-    .status{font-size:13px;color:var(--muted);margin-top:8px;min-height:1.6em;text-align:left;}
-    code{background:#eef2ff;padding:2px 6px;border-radius:6px;}
+    h1{
+      font-size:20px;
+      margin:0 0 12px;
+    }
+
+    p{
+      font-size:14px;
+      color:var(--muted);
+      margin:0 0 16px;
+      text-align:left;
+      line-height:1.6;
+    }
+
+    .row{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+
+    .btn{
+      flex:1;
+      width:100%;
+      padding:16px 18px;
+      font-size:18px;
+      border-radius:14px;
+      border:1px solid var(--border);
+      cursor:pointer;
+      background:#f3f4f6;
+      color:var(--fg);
+      user-select:none;
+      transition:filter .15s ease, transform .02s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn:hover{ filter:brightness(.98); }
+    .btn:active{ transform:translateY(1px); }
+
+    .btn-primary{
+      background:var(--primary);
+      color:var(--primary-fg);
+      border-color:var(--primary);
+    }
+
+    .btn-danger{
+      background:var(--danger);
+      color:#fff;
+      border-color:var(--danger);
+    }
+
+    .btn-next{
+      background:#111827;
+      color:#ffffff;
+      border-color:#111827;
+    }
+
+    .meter-wrap{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:12px;
+      margin:14px 0 8px;
+      text-align:left;
+    }
+
+    .meter-label{
+      font-size:12px;
+      color:var(--muted);
+      margin-bottom:6px;
+    }
+
+    canvas#meter{
+      width:100%;
+      height:72px;
+      display:block;
+      background:var(--meter-bg);
+      border-radius:10px;
+      border:1px solid var(--border);
+    }
+
+    .status{
+      font-size:13px;
+      color:var(--muted);
+      margin-top:8px;
+      min-height:1.6em;
+      text-align:left;
+    }
   </style>
 </head>
+
 <body>
   <main>
     <h1>マイクテスト</h1>
+
     <p>
-      「スタート」を押すとマイク音声が <strong>1秒遅れ</strong> で返ってきます。<br>
+      「スタート」を押すとマイク音声が
+      <strong>1秒遅れ</strong>で返ってきます。<br>
+      ※ 確認は任意です。行わなくても「次へ」に進めます。
     </p>
 
-    <!-- スタート・ストップは上 -->
+    <!-- スタート・ストップ -->
     <div class="row">
       <button id="startBtn" class="btn btn-primary">▶️ スタート</button>
-      <button id="stopBtn"  class="btn btn-danger" disabled>⏹️ ストップ</button>
+      <button id="stopBtn" class="btn btn-danger" disabled>⏹️ ストップ</button>
     </div>
 
     <div class="meter-wrap">
       <div class="meter-label">入力波形（マイク入力チェック）</div>
-      <canvas id="meter" width="900" height="180" aria-label="入力波形メーター"></canvas>
+      <canvas id="meter" width="900" height="180"></canvas>
     </div>
 
     <div id="status" class="status"></div>
 
-    <!-- ✅ 次へボタンは下（停止中のみ有効） -->
+    <!-- ✅ 次へ（常に押せる） -->
     <div class="row" style="margin-top:14px;">
-      <button id="nextBtn" class="btn btn-next" disabled>➡️ 次へ</button>
+      <button id="nextBtn" class="btn btn-next">➡️ 次へ</button>
     </div>
-
   </main>
 
   <script>
-    // ===== 固定設定 =====
-    const DELAY_SEC   = 1.0;
-    const OUT_GAIN    = 0.6;
-    const FFT_SIZE    = 2048;
+    /* ===== 固定設定 ===== */
+    const DELAY_SEC = 1.0;
+    const OUT_GAIN = 0.6;
+    const FFT_SIZE = 2048;
     const VISUAL_GAIN = 3.0;
-    const MAX_DELAY   = 5.0;
+    const MAX_DELAY = 5.0;
 
-    // ===== UI =====
+    /* ===== UI ===== */
     const startBtn = document.getElementById('startBtn');
-    const stopBtn  = document.getElementById('stopBtn');
-    const nextBtn  = document.getElementById('nextBtn'); // ✅ 追加
+    const stopBtn = document.getElementById('stopBtn');
+    const nextBtn = document.getElementById('nextBtn');
     const statusEl = document.getElementById('status');
-    const meterCv  = document.getElementById('meter');
-    const ctx2d    = meterCv.getContext('2d');
+    const meterCv = document.getElementById('meter');
+    const ctx2d = meterCv.getContext('2d');
 
-    // ===== Audio =====
+    /* ===== Audio ===== */
     let stream = null;
     let audioCtx = null;
     let sourceNode = null;
     let analyser = null;
     let delayNode = null;
     let gainNode = null;
-
     let rafId = null;
     let running = false;
 
-    // ✅ UI状態：停止中のみ「次へ」押せる
-    function setUI(on) {
+    /* UI状態（次へは常にOK） */
+    function setUI(on){
       running = on;
       startBtn.disabled = on;
-      stopBtn.disabled  = !on;
-      nextBtn.disabled  = on; // ✅ 動作中は次へ無効／停止中は有効
-
+      stopBtn.disabled = !on;
       statusEl.textContent = on
-        ? `動作中：話した声が ${DELAY_SEC.toFixed(1)} 秒後に返ります（ハウリング注意）`
-        : '停止中：スタートを押してください。（停止後「次へ」が押せます）';
+        ? `動作中：話した声が ${DELAY_SEC.toFixed(1)} 秒後に返ります`
+        : '停止中：確認は任意です。「次へ」に進めます。';
     }
 
-    function clearMeter() {
-      const bg = getComputedStyle(document.documentElement).getPropertyValue('--meter-bg').trim() || '#fff';
-      ctx2d.fillStyle = bg;
-      ctx2d.fillRect(0, 0, meterCv.width, meterCv.height);
+    function clearMeter(){
+      ctx2d.fillStyle = '#ffffff';
+      ctx2d.fillRect(0,0,meterCv.width,meterCv.height);
     }
 
-    function startWaveform() {
+    function startWaveform(){
       if (!analyser) return;
-
       analyser.fftSize = FFT_SIZE;
       const data = new Uint8Array(analyser.fftSize);
       const w = meterCv.width;
       const h = meterCv.height;
+      const midY = h * 0.5;
+      const ampScale = h * 0.3;
 
-      const waveColor = getComputedStyle(document.documentElement).getPropertyValue('--wave').trim() || '#0ea5a6';
-      const rmsColor  = getComputedStyle(document.documentElement).getPropertyValue('--rms').trim()  || '#2563eb';
-      const peakColor = getComputedStyle(document.documentElement).getPropertyValue('--peak').trim() || '#f59e0b';
-      const bgColor   = getComputedStyle(document.documentElement).getPropertyValue('--meter-bg').trim() || '#ffffff';
-
-      const midY = h * 0.45;
-      const ampScale = h * 0.30;
-
-      function draw() {
+      function draw(){
         analyser.getByteTimeDomainData(data);
 
-        let sum = 0;
-        let peak = 0;
-        for (let i = 0; i < data.length; i++) {
-          const v = (data[i] - 128) / 128;
-          sum += v * v;
-          peak = Math.max(peak, Math.abs(v));
-        }
-        const rms = Math.sqrt(sum / data.length);
+        ctx2d.fillStyle = '#ffffff';
+        ctx2d.fillRect(0,0,w,h);
 
-        ctx2d.fillStyle = bgColor;
-        ctx2d.fillRect(0, 0, w, h);
-
-        ctx2d.strokeStyle = "rgba(0,0,0,0.12)";
-        ctx2d.lineWidth = 1;
-        ctx2d.beginPath();
-        ctx2d.moveTo(0, midY);
-        ctx2d.lineTo(w, midY);
-        ctx2d.stroke();
-
-        ctx2d.fillStyle = rmsColor;
-        const barW = Math.min(w - 24, (w - 24) * rms);
-        ctx2d.fillRect(12, h - 22, barW, 10);
-
-        ctx2d.fillStyle = peakColor;
-        const xPeak = 12 + Math.min(w - 24, (w - 24) * peak);
-        ctx2d.fillRect(xPeak - 2, h - 30, 4, 26);
-
-        ctx2d.strokeStyle = waveColor;
+        ctx2d.strokeStyle = '#0ea5a6';
         ctx2d.lineWidth = 2;
         ctx2d.beginPath();
 
         const step = w / data.length;
-        for (let i = 0; i < data.length; i++) {
+        for(let i=0;i<data.length;i++){
           const raw = (data[i] - 128) / 128;
           const amp = Math.max(-1, Math.min(1, raw * VISUAL_GAIN));
           const x = i * step;
           const y = midY + amp * ampScale;
-          if (i === 0) ctx2d.moveTo(x, y);
-          else ctx2d.lineTo(x, y);
+          if(i===0) ctx2d.moveTo(x,y);
+          else ctx2d.lineTo(x,y);
         }
         ctx2d.stroke();
 
@@ -183,63 +229,59 @@
       rafId = requestAnimationFrame(draw);
     }
 
-    function stopWaveform() {
+    function stopWaveform(){
       cancelAnimationFrame(rafId);
       rafId = null;
       clearMeter();
     }
 
-    async function start() {
+    async function start(){
       if (running) return;
 
-      try {
+      try{
         stream = await navigator.mediaDevices.getUserMedia({
-          audio: {
-            echoCancellation: true,
-            noiseSuppression: true,
-            autoGainControl: true
+          audio:{
+            echoCancellation:true,
+            noiseSuppression:true,
+            autoGainControl:true
           }
         });
 
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        if (audioCtx.state === 'suspended') await audioCtx.resume();
+        await audioCtx.resume();
 
         sourceNode = audioCtx.createMediaStreamSource(stream);
-
         analyser = audioCtx.createAnalyser();
-
         delayNode = audioCtx.createDelay(MAX_DELAY);
         delayNode.delayTime.value = DELAY_SEC;
-
         gainNode = audioCtx.createGain();
         gainNode.gain.value = OUT_GAIN;
 
         sourceNode.connect(analyser);
-
         sourceNode.connect(delayNode);
         delayNode.connect(gainNode);
         gainNode.connect(audioCtx.destination);
 
         setUI(true);
         startWaveform();
-      } catch (err) {
-        statusEl.textContent = `開始できませんでした：${err?.message || err}`;
+      }catch(err){
+        statusEl.textContent = `開始できませんでした：${err.message}`;
         await stop(true);
       }
     }
 
-    async function stop(silent = false) {
-      try { gainNode?.disconnect(); } catch {}
-      try { delayNode?.disconnect(); } catch {}
-      try { analyser?.disconnect(); } catch {}
-      try { sourceNode?.disconnect(); } catch {}
+    async function stop(silent=false){
+      try{ gainNode?.disconnect(); }catch{}
+      try{ delayNode?.disconnect(); }catch{}
+      try{ analyser?.disconnect(); }catch{}
+      try{ sourceNode?.disconnect(); }catch{}
+      try{ stream?.getTracks()?.forEach(t=>t.stop()); }catch{}
 
-      try { stream?.getTracks()?.forEach(t => t.stop()); } catch {}
-      stream = null;
-
-      if (audioCtx) {
-        try { await audioCtx.close(); } catch {}
+      if(audioCtx){
+        try{ await audioCtx.close(); }catch{}
       }
+
+      stream = null;
       audioCtx = null;
       sourceNode = null;
       analyser = null;
@@ -247,32 +289,29 @@
       gainNode = null;
 
       stopWaveform();
-
-      if (!silent) setUI(false);
-      else {
-        // silentでも状態だけは停止にしておく（遷移など）
-        running = false;
-        startBtn.disabled = false;
-        stopBtn.disabled = true;
-        nextBtn.disabled = false; // 停止扱いなので次へOK
-      }
+      if(!silent) setUI(false);
+      else running = false;
     }
 
-    // ✅ 次へ：停止中のみ（念のため止めてから遷移）
-    async function goNext() {
-      if (running) return; // 念のためガード（通常押せない）
+    /* ✅ 次へ：状態に関係なく進む（必ず停止してから） */
+    async function goNext(){
       await stop(true);
-      location.href = "review.html";
+
+      const repairType = localStorage.getItem('repairType');
+      location.href =
+        repairType === 'after'
+          ? 'review.html'
+          : 'pre_end.html';
     }
 
     startBtn.addEventListener('click', start);
-    stopBtn.addEventListener('click', () => stop(false));
+    stopBtn.addEventListener('click', ()=>stop(false));
     nextBtn.addEventListener('click', goNext);
-    window.addEventListener('beforeunload', () => stop(true));
+
+    window.addEventListener('beforeunload', ()=>stop(true));
 
     clearMeter();
-    setUI(false); // 初期は停止 → 次へは「押せる」仕様になるので、初期だけ無効にしたいなら下を有効化
-    nextBtn.disabled = true; // ✅ 初回は押せない（「ストップした時だけ」条件に合わせる）
+    setUI(false);
   </script>
 </body>
 </html>

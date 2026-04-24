@@ -1,223 +1,47 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>修理後動作確認</title>
-  <style>
-    :root{
-      --bg:#ffffff; --fg:#111111; --muted:#6b7280;
-      --primary:#2b6cf6; --primary-fg:#ffffff;
-      --card:#f9fafb; --border:#e5e7eb;
-      --input:#ffffff;
-      --shadow: 0 8px 20px rgba(0,0,0,.06);
-    }
-    *{box-sizing:border-box;}
-    html,body{height:100%; margin:0; background:var(--bg); color:var(--fg);
-      font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans JP",sans-serif;}
-    body{
-      display:flex;
-      justify-content:center;
-      align-items:stretch;
-    }
-    main{
-      width:min(560px, 100%);
-      padding:20px 16px 28px;
-      margin:0 auto;
-    }
-
-    header{
-      padding:6px 2px 12px;
-      text-align:center;
-    }
-    h1{
-      font-size:24px;
-      margin:0 0 6px;
-      letter-spacing:.02em;
-    }
-    p{
-      margin:0;
-      color:var(--muted);
-      font-size:14px;
-      line-height:1.6;
-    }
-
-    .card{
-      margin-top:14px;
-      background:var(--card);
-      border:1px solid var(--border);
-      border-radius:16px;
-      padding:16px;
-      box-shadow:var(--shadow);
-    }
-
-    label{
-      display:block;
-      font-size:13px;
-      color:var(--muted);
-      margin:0 0 8px;
-    }
-
-    /* iOS/Androidで押しやすい大きめselect */
-    .select-wrap{
-      position:relative;
-    }
-    select{
-      width:100%;
-      appearance:none;
-      -webkit-appearance:none;
-      -moz-appearance:none;
-      background:var(--input);
-      border:1px solid var(--border);
-      border-radius:14px;
-      padding:16px 44px 16px 14px; /* 右に矢印スペース */
-      font-size:16px; /* iOSでズームしないため16px以上推奨 */
-      line-height:1.2;
-      color:var(--fg);
-      outline:none;
-    }
-    select:focus{
-      border-color:rgba(43,108,246,.55);
-      box-shadow:0 0 0 4px rgba(43,108,246,.12);
-    }
-    .chev{
-      position:absolute;
-      right:14px;
-      top:50%;
-      transform:translateY(-50%);
-      pointer-events:none;
-      color:#9ca3af;
-      font-size:18px;
-    }
-
-    .status{
-      margin-top:10px;
-      min-height:1.6em;
-      color:var(--muted);
-      font-size:13px;
-    }
-
-    .actions{
-      margin-top:14px;
-      display:flex;
-      gap:12px;
-      flex-wrap:wrap;
-    }
-    .btn{
-      width:100%;
-      padding:16px 18px;
-      font-size:18px;
-      border-radius:14px;
-      border:1px solid var(--border);
-      cursor:pointer;
-      background:#f3f4f6;
-      color:var(--fg);
-      user-select:none;
-      transition:filter .15s ease, transform .02s ease;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .btn:hover{filter:brightness(.98);}
-    .btn:active{transform:translateY(1px);}
-    .btn-primary{
-      background:var(--primary);
-      border-color:var(--primary);
-      color:var(--primary-fg);
-    }
-    .btn:disabled{
-      opacity:.55;
-      cursor:not-allowed;
-    }
-
-    .note{
-      margin-top:10px;
-      font-size:12px;
-      color:var(--muted);
-      line-height:1.6;
-    }
-
-    /* 画面下に余白を確保（iPhoneのホームバー対策） */
-    .safe-bottom{
-      padding-bottom: env(safe-area-inset-bottom);
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>チェック種別選択</title>
+<style>
+body{
+  margin:0; height:100%;
+  display:grid; place-items:center;
+  font-family: system-ui, "Noto Sans JP", sans-serif;
+  background:#fff;
+}
+main{ width:min(480px,90%); text-align:center; }
+h1{ font-size:22px; margin-bottom:20px; }
+.btn{
+  width:100%;
+  padding:18px;
+  font-size:18px;
+  border-radius:14px;
+  border:none;
+  cursor:pointer;
+  margin-bottom:14px;
+}
+.repair-before{ background:#e5e7eb; }
+.repair-after{ background:#2b6cf6; color:#fff; }
+</style>
 </head>
 <body>
-  <main class="safe-bottom">
-    <header>
-      <h1>修理後動作確認</h1>
-      <p>店舗を選択してから「次へ」を押してください。</p>
-    </header>
+<main>
+  <h1>チェック種別を選択</h1>
+  <button class="btn repair-before" onclick="selectType('before')">
+    修理前チェック
+  </button>
+  <button class="btn repair-after" onclick="selectType('after')">
+    修理後チェック
+  </button>
+</main>
 
-    <section class="card" aria-label="店舗選択">
-      <label for="storeSelect">店舗選択</label>
-
-      <div class="select-wrap">
-        <select id="storeSelect">
-          <option value="" selected disabled>選択してください</option>
-          <!-- とりあえず 1〜10（あとで店舗名に差し替えOK） -->
-          <option value="1">店舗 1</option>
-          <option value="2">店舗 2</option>
-          <option value="3">店舗 3</option>
-          <option value="4">店舗 4</option>
-          <option value="5">店舗 5</option>
-          <option value="6">店舗 6</option>
-          <option value="7">店舗 7</option>
-          <option value="8">店舗 8</option>
-          <option value="9">店舗 9</option>
-          <option value="10">店舗 10</option>
-        </select>
-        <div class="chev">▾</div>
-      </div>
-
-      <div id="status" class="status">未選択：店舗を選んでください。</div>
-
-      <div class="actions">
-        <button id="nextBtn" class="btn btn-primary" disabled>➡️ 次へ</button>
-      </div>
-
-      <div class="note">
-        ※ 店舗を選択すると次へ進めます。選択情報は端末内（localStorage）に保存します。
-      </div>
-    </section>
-
-    <script>
-      // 選択した店舗IDを保存するキー（後で他ページから読む）
-      const STORE_KEY = 'selectedStoreId';
-
-      const selectEl = document.getElementById('storeSelect');
-      const nextBtn  = document.getElementById('nextBtn');
-      const statusEl = document.getElementById('status');
-
-      let selectedStoreId = "";
-
-      // 選択されたら「次へ」を有効化
-      selectEl.addEventListener('change', () => {
-        selectedStoreId = selectEl.value;
-        if (selectedStoreId) {
-          nextBtn.disabled = false;
-          statusEl.textContent = `選択中：店舗 ${selectedStoreId}`;
-        } else {
-          nextBtn.disabled = true;
-          statusEl.textContent = '未選択：店舗を選んでください。';
-        }
-      });
-
-      // 次へ：localStorageへ保存 → fptest.htmlへ
-      nextBtn.addEventListener('click', () => {
-        if (!selectedStoreId) return;
-        localStorage.setItem(STORE_KEY, selectedStoreId);
-        location.href = 'fptest.html';
-      });
-
-      // （任意）前回選択の復元をしたい場合は以下を有効化
-      // const prev = localStorage.getItem(STORE_KEY);
-      // if (prev) {
-      //   selectEl.value = prev;
-      //   selectedStoreId = prev;
-      //   nextBtn.disabled = false;
-      //   statusEl.textContent = `選択中：店舗 ${selectedStoreId}`;
-      // }
-    </script>
-  </main>
+<script>
+function selectType(type){
+  localStorage.setItem('repairType', type);
+  location.href = 'fptest.html';
+}
+</script>
 </body>
 </html>

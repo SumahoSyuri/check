@@ -4,18 +4,19 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>口コミのお願い</title>
+
   <style>
     :root {
       /* ベース（ライトテーマ） */
-      --bg: #ffffff;      /* 背景：白 */
-      --fg: #111111;      /* 文字：濃い黒 */
-      --muted: #6b7280;   /* 補足テキスト（グレー600） */
+      --bg: #ffffff;
+      --fg: #111111;
+      --muted: #6b7280;
 
       /* ボタン */
-      --primary: #2b6cf6;    /* 口コミボタン（ブルー） */
-      --primary-fg: #ffffff; /* 口コミボタンの文字色 */
-      --btn-border: #e5e7eb; /* 薄グレーの枠線 */
-      --btn-bg: #f3f4f6;     /* セカンダリ用の薄グレー背景（必要な場合） */
+      --primary: #2b6cf6;
+      --primary-fg: #ffffff;
+      --btn-border: #e5e7eb;
+      --btn-bg: #f3f4f6;
       --btn-fg: #111111;
     }
 
@@ -35,11 +36,24 @@
       text-align: center;
     }
 
-    h1 { font-size: 22px; margin: 0 0 12px; }
-    p  { font-size: 15px; color: #1f2937; margin: 0 0 18px; line-height: 1.8; } /* 本文はやや濃いグレー */
-    .small { font-size: 12px; color: var(--muted); margin-top: 10px; }
+    h1 {
+      font-size: 22px;
+      margin: 0 0 12px;
+    }
 
-    /* ボタン（aタグ用） */
+    p {
+      font-size: 15px;
+      color: #1f2937;
+      margin: 0 0 18px;
+      line-height: 1.8;
+    }
+
+    .small {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 10px;
+    }
+
     .btn {
       display: inline-block;
       width: 100%;
@@ -52,115 +66,66 @@
       user-select: none;
       margin-top: 12px;
 
-      /* デフォルト（プライマリ） */
       background: var(--primary);
       color: var(--primary-fg);
       border: 1px solid var(--primary);
       transition: filter 0.15s ease, transform 0.02s ease;
     }
-    .btn:hover { filter: brightness(0.98); }
-    .btn:active { transform: translateY(1px); }
 
-    /* もしサブボタンが必要なら（例：InstagramやX） */
-    .btn-secondary {
-      background: var(--btn-bg);
-      color: var(--btn-fg);
-      border: 1px solid var(--btn-border);
+    .btn:hover {
+      filter: brightness(0.98);
+    }
+
+    .btn:active {
+      transform: translateY(1px);
     }
   </style>
 </head>
+
 <body>
   <main>
     <h1>ご利用ありがとうございました</h1>
 
-    <!-- ✅ ここをJSで「この度は ◯◯ のご利用ありがとうございました」に差し替え -->
     <p id="thanksText">
       この度は当店をご利用いただき、誠にありがとうございます。<br>
-      よろしければ、今後のサービス向上のために<strong>簡単な口コミ</strong>にご協力をお願いします。<br>
+      よろしければ、今後のサービス向上のために
+      <strong>簡単な口コミ</strong>にご協力をお願いします。<br>
       所要時間は<strong>30秒ほど</strong>、ひと言だけでも大歓迎です。
     </p>
 
-    <!-- ✅ 口コミへ遷移するボタン（JSでURLを店舗のものに差し替える） -->
-    <a id="reviewBtn"
-       class="btn"
-       href="https://g.page/r/CdR6B0kblKpvEBM/review"
-       target="_blank"
-       rel="noopener"
-       aria-label="Googleで口コミを書く">
+    <a
+      id="reviewBtn"
+      class="btn"
+      href="#"
+      target="_blank"
+      rel="noopener"
+      aria-label="Googleで口コミを書く"
+    >
       口コミを書く（Google）
     </a>
 
-    <!-- 必要なら複数ボタンもOK（Instagram・Xなど） -->
-    <!--
-    <a class="btn btn-secondary" href="https://www.instagram.com/xxxxx" target="_blank" rel="noopener">Instagramで投稿する</a>
-    <a class="btn btn-secondary" href="https://x.com/compose/tweet?text=店名やハッシュタグ" target="_blank" rel="noopener">X（旧Twitter）で投稿する</a>
-    -->
-
+    <p class="small">
+      ※ 口コミ画面は別タブで開きます
+    </p>
   </main>
 
   <script>
-    // index.htmlで保存したキー名と同じにする
-    const STORE_KEY = 'selectedStoreId';
-
-    // ✅ 店舗ID → 店舗名（あとで正式名称に差し替えOK）
-    const STORE_NAMES = {
-      "1": "店舗1",
-      "2": "店舗2",
-      "3": "店舗3",
-      "4": "店舗4",
-      "5": "店舗5",
-      "6": "店舗6",
-      "7": "店舗7",
-      "8": "店舗8",
-      "9": "店舗9",
-      "10": "店舗10"
-    };
-
-    // ✅ 店舗ID → Google口コミURL（あとで本物に差し替えOK）
-    const STORE_REVIEW_URLS = {
-      "1": "https://g.page/r/CdR6B0kblKpvEBM/review",
-      "2": "https://example.com/store2/review",
-      "3": "https://example.com/store3/review",
-      "4": "https://example.com/store4/review",
-      "5": "https://example.com/store5/review",
-      "6": "https://example.com/store6/review",
-      "7": "https://example.com/store7/review",
-      "8": "https://example.com/store8/review",
-      "9": "https://example.com/store9/review",
-      "10": "https://example.com/store10/review"
-    };
+    /* ===== 店舗固定設定 ===== */
+    const STORE_NAME = "スマホ修理工房イオンモール福岡店";  // ← 店舗名をここで固定
+    const REVIEW_URL = "https://g.page/r/CdR6B0kblKpvEBM/review"; // ← 正式なGoogle口コミURL
 
     const thanksText = document.getElementById('thanksText');
-    const reviewBtn  = document.getElementById('reviewBtn');
+    const reviewBtn = document.getElementById('reviewBtn');
 
-    const storeId = localStorage.getItem(STORE_KEY);
-    const storeName = STORE_NAMES[storeId];
-    const reviewUrl = STORE_REVIEW_URLS[storeId];
+    /* お礼文を店舗名入りに差し替え */
+    thanksText.innerHTML =
+      `この度は <strong>${STORE_NAME}</strong> のご利用ありがとうございました。<br>
+       よろしければ、今後のサービス向上のために
+       <strong>簡単な口コミ</strong>にご協力をお願いします。<br>
+       所要時間は<strong>30秒ほど</strong>、ひと言だけでも大歓迎です。`;
 
-    // ✅ 文章を「この度は 対応店舗 のご利用ありがとうございました」に変更
-    if (storeName) {
-      // 先頭行だけ差し替えて、残りの案内文はそのまま残す形
-      thanksText.innerHTML =
-        `この度は <strong>${storeName}</strong> のご利用ありがとうございました。<br>` +
-        `よろしければ、今後のサービス向上のために<strong>簡単な口コミ</strong>にご協力をお願いします。<br>` +
-        `所要時間は<strong>30秒ほど</strong>、ひと言だけでも大歓迎です。`;
-    }
-
-    // ✅ 口コミボタンURLを店舗に応じて差し替え
-    if (reviewUrl) {
-      reviewBtn.href = reviewUrl;
-    } else {
-      // 未選択などのとき：押したらindexへ戻す
-      reviewBtn.textContent = '店舗が未選択です（最初に戻って選択）';
-      reviewBtn.setAttribute('aria-disabled', 'true');
-      reviewBtn.style.opacity = '0.6';
-      reviewBtn.style.pointerEvents = 'auto';
-
-      reviewBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        location.href = 'index.html';
-      });
-    }
+    /* 口コミURLを設定 */
+    reviewBtn.href = REVIEW_URL;
   </script>
 </body>
 </html>
